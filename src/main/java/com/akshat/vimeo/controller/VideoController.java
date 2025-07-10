@@ -1,28 +1,28 @@
 package com.akshat.vimeo.controller;
 
-
-//import com.akshat.vimeouploader.service.VimeoUploadService;
+import com.akshat.vimeo.service.VimeoUploadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/vimeo")
 @RequiredArgsConstructor
 public class VideoController {
 
-    //private final VimeoUploadService uploadService;
+    private final VimeoUploadService uploadService;
 
-    @PostMapping("/upload")
-    public ResponseEntity<String> uploadVideoToVimeo(@RequestParam("file") MultipartFile file) {
+    @PostMapping("/upload/{fileName}")
+    public ResponseEntity<String> uploadVideo(@PathVariable String fileName) {
         try {
-            //String response = uploadService.uploadVideo(file);
-            String response = "";
-            return ResponseEntity.ok("Uploaded to Vimeo successfully.\nResponse: " + response);
+            String videoUri = uploadService.uploadFromLocalDirectory(fileName);
+            return ResponseEntity.ok(" Uploaded to Vimeo: " + videoUri);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Upload failed: " + e.getMessage());
+            // Check for Vimeo 401 error
+            if (e.getMessage() != null && e.getMessage().contains("401")) {
+                return ResponseEntity.status(401).body(" Upload failed: Unauthorized (401). Please check your Vimeo access token.");
+            }
+            return ResponseEntity.status(500).body(" Upload failed: " + e.getMessage());
         }
     }
 }
-
